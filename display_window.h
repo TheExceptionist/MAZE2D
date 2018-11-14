@@ -41,12 +41,13 @@ class DisplayWindow
 
         e_std::e_bool m_running;
 
-        void storePixel(e_std::e_word* pixel_addr, const int x, const e_std::color_t* const color);
-        bool checkBounds(const int x, const int y, int width, int height);
+        void storePixel(e_std::e_word* pixel_addr, const e_std::e_word xOff, const e_std::color_t* const color);
+        bool checkBounds(const e_std::e_word x, const e_std::e_word y, e_std::e_word width, e_std::e_word height);
+        bool checkBounds(const e_std::e_word x, const e_std::e_word y);
         void clearColor(const e_std::color_t* const color);
 
         //Move this into the input handler
-        void handleInput();
+        void handleEvents();
 };
 
 #endif

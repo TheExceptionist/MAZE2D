@@ -61,10 +61,11 @@ void DisplayWindow::update()
     SDL_LockSurface(m_surface);
     
     clearColor(&BLUE);
-    //handleInput();
     SDL_UpdateWindowSurface(m_window);
     
     SDL_UnlockSurface(m_surface);
+
+    handleEvents();
 }
 
 void DisplayWindow::clearColor(const e_std::color_t* const color)
@@ -72,9 +73,18 @@ void DisplayWindow::clearColor(const e_std::color_t* const color)
     fillRect(0, 0, m_width, m_height, color);
 }
 
-void putPixel(e_std::pixel_t pixel)//, e_std::e_word y, const e_std::color_t* const color)
+void DisplayWindow::putPixel(e_std::pixel_t* pixel)
 {
+    if(!checkBounds(pixel->x, pixel->y))
+    {
+        printf("Skipping pixel at: (%d, %d)\n", pixel->x, pixel->y);
+        return;
+    }
 
+    e_std::e_word* pixel_addr = (e_std::e_word*)m_surface->pixels;
+    pixel_addr += pixel->x + (pixel->y * m_width);
+
+    storePixel(pixel_addr, 0, pixel->color);
 }
 
 void DisplayWindow::fillRect(e_std::e_word x, e_std::e_word y, e_std::e_word width, e_std::e_word height, const e_std::color_t* const color)
@@ -84,6 +94,7 @@ void DisplayWindow::fillRect(e_std::e_word x, e_std::e_word y, e_std::e_word wid
     //Check bounds
     if(!checkBounds(x, y, width, height))
     {
+        printf("Skipping rect at: (%d, %d)\n", x, y);
         return;
     }
 
@@ -101,24 +112,30 @@ void DisplayWindow::fillRect(e_std::e_word x, e_std::e_word y, e_std::e_word wid
     }
 }
 
-void DisplayWindow::storePixel(e_std::e_word* addr, const int x, const e_std::color_t* const color)
+void DisplayWindow::storePixel(e_std::e_word* addr, const e_std::e_word xOff, const e_std::color_t* const color)
 {
     //Low endian
-    e_std::e_byte* pixel_byte = (e_std::e_byte*) (addr + x);
+    e_std::e_byte* pixel_byte = (e_std::e_byte*) (addr + xOff);
     *pixel_byte = color->b;
     *(pixel_byte + 1) = color->g;
     *(pixel_byte + 2) = color->r;
     *(pixel_byte + 3) = color->a;
 }
 
-bool DisplayWindow::checkBounds(const int x, const int y, int width, int height)
+bool DisplayWindow::checkBounds(const e_std::e_word x, const e_std::e_word y, e_std::e_word width, e_std::e_word height)
 {
-    if(x > m_width) return FALSE;
-    if(y > m_height) return FALSE;
+    if(!checkBounds(x, y)) return FALSE;
     if(x + width > m_width) width = m_width - x; 
     if(y + height > m_height) height = m_height - y;
 
     return TRUE; 
+}
+
+bool DisplayWindow::checkBounds(const e_std::e_word x, const e_std::e_word y)
+{
+    if(x > m_width) return FALSE;
+    if(y > m_height) return FALSE;
+    return TRUE;
 }
 
 
@@ -201,7 +218,7 @@ void DisplayWindow::putPixel(e_std::e_word x, e_std::e_word y, const e_std::colo
     SDL_UnlockSurface(m_surface);
 }
 
-void DisplayWindow::handleInput()
+void DisplayWindow::handleEvents()
 {
     SDL_Event event;
     while(SDL_PollEvent(&event))
@@ -214,7 +231,8 @@ void DisplayWindow::handleInput()
             } break;
             case SDL_KEYDOWN:
             {
-                switch(event.key.keysym.sym)
+                //Move to input
+                /*switch(event.key.keysym.sym)
                 {
                     case SDLK_LEFT:
                     {
@@ -240,7 +258,7 @@ void DisplayWindow::handleInput()
                     {
                         printf("Pressed\n");
                     } break;
-                }
+                }*/
             } break;
             case SDL_KEYUP:
             {
