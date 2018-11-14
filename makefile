@@ -1,5 +1,5 @@
 exe_name = MAZE2D
-objects = main.o display_window.o
+objects = main.o geometry.o display_window.o mem_manager.o bitmap.o filesystem.o
 compiler = g++
 include_dir = include
 lib_dir = lib
@@ -11,11 +11,23 @@ $(exe_name) : $(objects)
         -l $(libs)
 
 $(objects) : defs.h
-main.o : main.cpp display_window.h 
+main.o : main.cpp display_window.h bitmap.h filesystem.h
 	$(compiler) -c main.cpp
+
+geometry.o : geometry.cpp geometry.h defs.h
+	$(compiler) -c geometry.cpp
 
 display_window.o : display_window.cpp display_window.h geometry.h
 	$(compiler) -c display_window.cpp
+
+mem_manager.o : mem_manager.cpp mem_manager.h
+	$(compiler) -c mem_manager.cpp
+
+bitmap.o : bitmap.cpp bitmap.h
+	$(compiler) -c bitmap.cpp
+
+filesystem.o : filesystem.cpp filesystem.h bitmap.h
+	$(compiler) -c filesystem.cpp
 
 .PHONY : clean \ 
 		reset \
@@ -35,7 +47,7 @@ init:
 	-git remote add origin $(git)
 	-git push origin master
 
-Debug: $(exe_name)
+commit: $(exe_name) 
 	-rm $(objects)
 	-git add *
 	-git commit -m "Another Commit"
